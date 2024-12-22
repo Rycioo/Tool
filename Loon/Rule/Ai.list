@@ -41,33 +41,24 @@ IP-ASN,20473,no-resolve
 IP-CIDR,24.199.123.28/32,no-resolve
 IP-CIDR,64.23.132.171/32,no-resolve
 
-# Copilot
-DOMAIN, api.githubcopilot.com
-DOMAIN, copilot-proxy.githubusercontent.com
-DOMAIN, copilot.microsoft.com
-DOMAIN, sydney.bing.com
-DOMAIN, www.bing.com
-
 # Gemini
-DOMAIN, bard.google.com
-DOMAIN, gemini.google.com
-DOMAIN, generativelanguage.googleapis.com
-DOMAIN, ai.google.dev
-DOMAIN, aida.googleapis.com
-DOMAIN, aistudio.google.com
-DOMAIN, alkalimakersuite-pa.clients6.google.com
-DOMAIN, makersuite.google.com
+DOMAIN,ai.google.dev
+DOMAIN,alkalimakersuite-pa.clients6.google.com
+DOMAIN,makersuite.google.com
+DOMAIN-SUFFIX,bard.google.com
+DOMAIN-SUFFIX,deepmind.com
+DOMAIN-SUFFIX,deepmind.google
+DOMAIN-SUFFIX,gemini.google.com
+DOMAIN-SUFFIX,generativeai.google
+DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com
+DOMAIN-SUFFIX,apis.google.com
+DOMAIN-KEYWORD,colab
+DOMAIN-KEYWORD,developerprofiles
+DOMAIN-KEYWORD,generativelanguage
 
 # Claude
-DOMAIN-SUFFIX, anthropic.com
-DOMAIN-SUFFIX, claude.ai
+DOMAIN,cdn.usefathom.com
+DOMAIN-SUFFIX,anthropic.com
+DOMAIN-SUFFIX,claude.ai
 IP-CIDR, 160.79.104.0/23, no-resolve
 IP-CIDR6, 2607:6bc0::/48, no-resolve
-
-# JetBrains AI
-DOMAIN-SUFFIX, grazie.ai
-DOMAIN-SUFFIX, grazie.aws.intellij.net
-
-# Meta
-DOMAIN, imagine.meta.com
-DOMAIN-SUFFIX, meta.ai
