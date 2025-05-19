@@ -355,13 +355,6 @@ rule-providers:
     interval: 86400
     format: text
     type: http
-  YouTube:
-    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/YouTube.list
-    path: ./ruleset/YouTube.list
-    behavior: classical
-    interval: 86400
-    format: text
-    type: http
   BilibiliHMT:
     url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/BilibiliHMT.list
     path: ./ruleset/BilibiliHMT.list
@@ -431,7 +424,6 @@ rules:
   - "RULE-SET,Telegram,电报消息"
   - "RULE-SET,Epic,游戏平台"
   - "RULE-SET,Steam,游戏平台"
-  - "RULE-SET,YouTube,油管视频"
   - "RULE-SET,BilibiliHMT,哔哩哔哩"
   - "RULE-SET,Bilibili,哔哩哔哩"
   - "RULE-SET,ChinaMedia,国内媒体"
