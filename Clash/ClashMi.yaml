@@ -1,0 +1,1143 @@
+// 脚本分享地址：https://linux.do/t/topic/471428/143?u=oojialin
+/**
+ * ClashVerge 代理规则配置生成脚本
+ * MIT License ~
+ * author : Phantasia https://github.com/MarchPhantasia
+ */
+// ==================== 用户配置区（可自由修改） ====================
+/**
+ * 常用配置选项
+ */
+const CONFIG = {
+    // 测试连接URL
+    testUrl: "https://www.gstatic.com/generate_204", // 用于测试代理服务器连通性的URL，通常返回HTTP 204状态码
+    // 自动测试间隔 (秒)
+    testInterval: 300, // 自动测试代理服务器延迟的间隔时间，单位为秒
+    // 自动选优容差 (毫秒)
+    tolerance: 20, // 自动选优代理服务器时，允许的延迟差异范围，单位为毫秒
+    // 负载均衡策略："round-robin" | "sticky-sessions" | "consistent-hashing"
+    // round-robin：轮询，将会把所有的请求分配给策略组内不同的代理节点
+    // consistent-hashing：散列，将相同的 目标地址 的请求分配给策略组内的同一个代理节点
+    // sticky-sessions：缓存，将相同的 来源地址 和 目标地址 的请求分配给策略组内的同一个代理节点，缓存 10 分钟过期
+    balanceStrategy: "sticky-sessions" // 负载均衡策略，用于在多个代理服务器之间分配流量
+};
+
+/**
+ * 用户自定义规则（高优先级）
+ * 这些规则会被放置在所有其他规则之前，确保不会被其他规则覆盖
+ */
+const USER_RULES = [
+    "DOMAIN-SUFFIX,v2ex.com,Outside", // 匹配v2ex.com及其子域名，并标记为“Outside”
+    "DOMAIN-SUFFIX,nodeseek.com,Outside", // 匹配nodeseek.com及其子域名，并标记为“Outside”
+    "DOMAIN-SUFFIX,mnapi.com,DIRECT",    // 匹配mnapi.com及其子域名，并使用DIRECT策略（直连）
+    "DOMAIN-SUFFIX,ieee.org,DIRECT",    // 匹配ieee.org及其子域名，并使用DIRECT策略（直连）
+    "DOMAIN-SUFFIX,anrunnetwork.com,DIRECT",    // 匹配anrunnetwork.com及其子域名，并使用DIRECT策略（直连）
+    "DOMAIN-SUFFIX,apifox.com,DIRECT",    // 匹配apifox.com及其子域名，并使用DIRECT策略（直连）
+    "DOMAIN-SUFFIX,crond.dev,DIRECT",    // 匹配crond.dev及其子域名，并使用DIRECT策略（直连）
+    "IP-CIDR,223.113.52.0/22,DIRECT,no-resolve" // 匹配IP地址段223.113.52.0/22，并使用DIRECT策略（直连），不进行域名解析
+    // 在此添加更多自定义规则...
+];
+
+const SAVED_RULES = [
+    "RULE-SET,reject,Ads",       // 匹配“广告拦截”规则集，并使用REJECT策略（拒绝连接）
+    "RULE-SET,cncidr,DIRECT,no-resolve", // 匹配“cncidr”规则集（中国大陆IP段），并使用DIRECT策略（直连），不进行域名解析
+    "RULE-SET,direct,DIRECT",       // 匹配“direct”规则集，并使用DIRECT策略（直连）
+    "GEOSITE,gfw,Outside",         // 匹配被墙网站，并标记为“Outside”
+    "GEOIP,CN,China",           // 匹配中国大陆IP地址，并标记为“国内网站”
+    "MATCH,World"             // 匹配所有其他流量，并标记为“国外网站”
+];
+
+/**
+ * 地区分组配置
+ * 用于按线路所在地区分组
+ * 添加了一个enabled开关，用于控制是否启用该地区分组
+ */
+const REGIONS = [
+    {
+        name: "HK",
+        keywords: ["香港", "港", "🇭🇰", "hk", "hongkong", "hong kong"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/hk.svg",
+        enabled: true // true 表示启用该分组，false 表示禁用
+    },
+    {
+        name: "TW",
+        keywords: ["台湾", "湾", "🇹🇼", "tw", "taiwan", "tai wan"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/tw.svg",
+        enabled: true
+    },
+    {
+        name: "JP",
+        keywords: ["日本", "🇯🇵", "jp", "japan", "c7s4"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/jp.svg",
+        enabled: true
+    },
+    {
+        name: "KR",
+        keywords: ["韩国", "🇰🇷", "kr", "Korea"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/kr.svg",
+        enabled: true
+    },	
+    {
+        name: "SG",
+        keywords: ["新加坡", "狮城", "🇸🇬", "sg", "singapore"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/sg.svg",
+        enabled: true
+    },
+    {
+        name: "US",
+        keywords: ["美国", "US", "🇺🇸", "USA", "United States", "c7s1", "c7s2", "c7s3"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/us.svg",
+        enabled: true
+    },	
+    {
+        name: "越南",
+        keywords: ["越南", "VN", "Vietnam", "🇻🇳"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/vn.svg",
+        enabled: false
+    },
+    {
+        name: "泰国",
+        keywords: ["泰国", "TH", "Thailand", "🇹🇭"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/th.svg",
+        enabled: false
+    },
+    {
+        name: "菲律宾",
+        keywords: ["菲律宾", "PH", "Philippines", "🇵🇭"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ph.svg",
+        enabled: false
+    },
+    {
+        name: "马来西亚",
+        keywords: ["马来西亚", "MY", "Malaysia", "🇲🇾"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/my.svg",
+        enabled: false
+    },
+    {
+        name: "柬埔寨",
+        keywords: ["柬埔寨", "KH", "Cambodia", "🇰🇭"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/kh.svg",
+        enabled: false
+    },
+    {
+        name: "印度尼西亚",
+        keywords: ["印度尼西亚", "ID", "Indonesia", "🇮🇩"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/id.svg",
+        enabled: false
+    },
+    {
+        name: "缅甸",
+        keywords: ["缅甸", "MM", "Myanmar", "🇲🇲"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/mm.svg",
+        enabled: false
+    },
+    {
+        name: "老挝",
+        keywords: ["老挝", "LA", "Laos", "🇱🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/la.svg",
+        enabled: false
+    },
+    {
+        name: "印度",
+        keywords: ["印度", "IN", "India", "🇮🇳"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/in.svg",
+        enabled: false
+    },
+    {
+        name: "孟加拉",
+        keywords: ["孟加拉", "BD", "Bangladesh", "🇧🇩"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/bd.svg",
+        enabled: false
+    },
+    {
+        name: "巴基斯坦",
+        keywords: ["巴基斯坦", "PK", "Pakistan", "🇵🇰"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/pk.svg",
+        enabled: false
+    },
+    {
+        name: "尼泊尔",
+        keywords: ["尼泊尔", "NP", "Nepal", "🇳🇵"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/np.svg",
+        enabled: false
+    },
+    {
+        name: "斯里兰卡",
+        keywords: ["斯里兰卡", "LK", "Sri Lanka", "🇱🇰"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/lk.svg",
+        enabled: false
+    },
+    {
+        name: "俄罗斯",
+        keywords: ["俄罗斯", "RU", "Russia", "🇷🇺"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ru.svg",
+        enabled: false
+    },
+    {
+        name: "哈萨克斯坦",
+        keywords: ["哈萨克斯坦", "KZ", "Kazakhstan", "🇰🇿"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/kz.svg",
+        enabled: false
+    },
+    {
+        name: "吉尔吉斯斯坦",
+        keywords: ["吉尔吉斯斯坦", "KG", "Kyrgyzstan", "🇰🇬"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/kg.svg",
+        enabled: false
+    },
+    {
+        name: "乌兹别克斯坦",
+        keywords: ["乌兹别克斯坦", "UZ", "Uzbekistan", "🇺🇿"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/uz.svg",
+        enabled: false
+    },
+    {
+        name: "土耳其",
+        keywords: ["土耳其", "TR", "Turkey", "🇹🇷"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/tr.svg",
+        enabled: false
+    },
+    {
+        name: "沙特阿拉伯",
+        keywords: ["沙特阿拉伯", "SA", "Saudi Arabia", "🇸🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/sa.svg",
+        enabled: false
+    },
+    {
+        name: "阿联酋",
+        keywords: ["阿联酋", "AE", "United Arab Emirates", "🇦🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ae.svg",
+        enabled: false
+    },
+    {
+        name: "卡塔尔",
+        keywords: ["卡塔尔", "QA", "Qatar", "🇶🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/qa.svg",
+        enabled: false
+    },
+    {
+        name: "以色列",
+        keywords: ["以色列", "IL", "Israel", "🇮🇱"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/il.svg",
+        enabled: false
+    },
+    {
+        name: "埃及",
+        keywords: ["埃及", "EG", "Egypt", "🇪🇬"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/eg.svg",
+        enabled: false
+    },
+    {
+        name: "希腊",
+        keywords: ["希腊", "GR", "Greece", "🇬🇷"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/gr.svg",
+        enabled: false
+    },
+    {
+        name: "意大利",
+        keywords: ["意大利", "IT", "Italy", "🇮🇹"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/it.svg",
+        enabled: false
+    },
+    {
+        name: "德国",
+        keywords: ["德国", "DE", "Germany", "🇩🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/de.svg",
+        enabled: false
+    },
+    {
+        name: "法国",
+        keywords: ["法国", "FR", "France", "🇫🇷"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/fr.svg",
+        enabled: false
+    },
+    {
+        name: "英国",
+        keywords: ["英国", "UK", "🇬🇧", "United Kingdom"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/gb.svg",
+        enabled: false
+    },
+    {
+        name: "荷兰",
+        keywords: ["荷兰", "NL", "Netherlands", "c7s5", "🇳🇱"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/nl.svg",
+        enabled: true
+    },
+    {
+        name: "比利时",
+        keywords: ["比利时", "BE", "Belgium", "🇧🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/be.svg",
+        enabled: false
+    },
+    {
+        name: "瑞士",
+        keywords: ["瑞士", "CH", "Switzerland", "🇨🇭"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ch.svg",
+        enabled: false
+    },
+    {
+        name: "瑞典",
+        keywords: ["瑞典", "SE", "Sweden", "🇸🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/se.svg",
+        enabled: false
+    },
+    {
+        name: "丹麦",
+        keywords: ["丹麦", "DK", "Denmark", "🇩🇰"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/dk.svg",
+        enabled: false
+    },
+    {
+        name: "挪威",
+        keywords: ["挪威", "NO", "Norway", "🇳🇴"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/no.svg",
+        enabled: false
+    },
+    {
+        name: "芬兰",
+        keywords: ["芬兰", "FI", "Finland", "🇫🇮"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/fi.svg",
+        enabled: false
+    },
+    {
+        name: "波兰",
+        keywords: ["波兰", "PL", "Poland", "🇵🇱"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/pl.svg",
+        enabled: false
+    },
+    {
+        name: "捷克",
+        keywords: ["捷克", "CZ", "Czech Republic", "🇨🇿"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/cz.svg",
+        enabled: false
+    },
+    {
+        name: "匈牙利",
+        keywords: ["匈牙利", "HU", "Hungary", "🇭🇺"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/hu.svg",
+        enabled: false
+    },
+    {
+        name: "奥地利",
+        keywords: ["奥地利", "AT", "Austria", "🇦🇹"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/at.svg",
+        enabled: false
+    },
+    {
+        name: "西班牙",
+        keywords: ["西班牙", "ES", "Spain", "🇪🇸"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/es.svg",
+        enabled: false
+    },
+    {
+        name: "葡萄牙",
+        keywords: ["葡萄牙", "PT", "Portugal", "🇵🇹"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/pt.svg",
+        enabled: false
+    },
+    {
+        name: "爱尔兰",
+        keywords: ["爱尔兰", "IE", "Ireland", "🇮🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ie.svg",
+        enabled: false
+    },
+    {
+        name: "冰岛",
+        keywords: ["冰岛", "IS", "Iceland", "🇮🇸"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/is.svg",
+        enabled: false
+    },
+    {
+        name: "乌克兰",
+        keywords: ["乌克兰", "UA", "Ukraine", "🇺🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ua.svg",
+        enabled: false
+    },
+    {
+        name: "白俄罗斯",
+        keywords: ["白俄罗斯", "BY", "Belarus", "🇧🇾"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/by.svg",
+        enabled: false
+    },
+    {
+        name: "立陶宛",
+        keywords: ["立陶宛", "LT", "Lithuania", "🇱🇹"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/lt.svg",
+        enabled: false
+    },
+    {
+        name: "拉脱维亚",
+        keywords: ["拉脱维亚", "LV", "Latvia", "🇱🇻"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/lv.svg",
+        enabled: false
+    },
+    {
+        name: "爱沙尼亚",
+        keywords: ["爱沙尼亚", "EE", "Estonia", "🇪🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ee.svg",
+        enabled: false
+    },
+    {
+        name: "摩尔多瓦",
+        keywords: ["摩尔多瓦", "MD", "Moldova", "🇲🇩"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/md.svg",
+        enabled: false
+    },
+    {
+        name: "罗马尼亚",
+        keywords: ["罗马尼亚", "RO", "Romania", "🇷🇴"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ro.svg",
+        enabled: false
+    },
+    {
+        name: "保加利亚",
+        keywords: ["保加利亚", "BG", "Bulgaria", "🇧🇬"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/bg.svg",
+        enabled: false
+    },
+    {
+        name: "塞尔维亚",
+        keywords: ["塞尔维亚", "RS", "Serbia", "🇷🇸"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/rs.svg",
+        enabled: false
+    },
+    {
+        name: "克罗地亚",
+        keywords: ["克罗地亚", "HR", "Croatia", "🇭🇷"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/hr.svg",
+        enabled: false
+    },
+    {
+        name: "斯洛伐克",
+        keywords: ["斯洛伐克", "SK", "Slovakia", "🇸🇰"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/sk.svg",
+        enabled: false
+    },
+    {
+        name: "波黑",
+        keywords: ["波黑", "BA", "Bosnia and Herzegovina", "🇧🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ba.svg",
+        enabled: false
+    },
+    {
+        name: "加拿大",
+        keywords: ["加拿大", "CA", "Canada", "🇨🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ca.svg",
+        enabled: false
+    },
+    {
+        name: "墨西哥",
+        keywords: ["墨西哥", "MX", "Mexico", "🇲🇽"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/mx.svg",
+        enabled: false
+    },
+    {
+        name: "巴西",
+        keywords: ["巴西", "BR", "Brazil", "🇧🇷"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/br.svg",
+        enabled: false
+    },
+    {
+        name: "哥伦比亚",
+        keywords: ["哥伦比亚", "CO", "Colombia", "🇨🇴"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/co.svg",
+        enabled: false
+    },
+    {
+        name: "秘鲁",
+        keywords: ["秘鲁", "PE", "Peru", "🇵🇪"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/pe.svg",
+        enabled: false
+    },
+    {
+        name: "阿根廷",
+        keywords: ["阿根廷", "AR", "Argentina", "🇦🇷"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ar.svg",
+        enabled: false
+    },
+    {
+        name: "南非",
+        keywords: ["南非", "ZA", "South Africa", "🇿🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/za.svg",
+        enabled: false
+    },
+    {
+        name: "澳大利亚",
+        keywords: ["澳大利亚", "AU", "Australia", "🇦🇺"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/au.svg",
+        enabled: false
+    },
+    {
+        name: "新西兰",
+        keywords: ["新西兰", "NZ", "New Zealand", "🇳🇿"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/nz.svg",
+        enabled: false
+    },
+    {
+        name: "尼日利亚",
+        keywords: ["尼日利亚", "NG", "NGR", "Niger", "🇳🇬"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ng.svg",
+        enabled: true
+    },
+    {
+        name: "安哥拉",
+        keywords: ["安哥拉", "AO", "Angola", "🇦🇴"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ao.svg",
+        enabled: false
+    },
+    {
+        name: "津巴布韦",
+        keywords: ["津巴布韦", "ZW", "Zimbabwe", "🇿🇼"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/zw.svg",
+        enabled: false
+    },
+    {
+        name: "摩洛哥",
+        keywords: ["摩洛哥", "MA", "Morocco", "🇲🇦"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/ma.svg",
+        enabled: false
+    },
+    {
+        name: "突尼斯",
+        keywords: ["突尼斯", "TN", "Tunisia", "🇹🇳"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/tn.svg",
+        enabled: false
+    },
+    {
+        name: "阿塞拜疆",
+        keywords: ["阿塞拜疆", "AZ", "Azerbaijan", "🇦🇿"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/az.svg",
+        enabled: false
+    },
+    {
+        name: "伊拉克",
+        keywords: ["伊拉克", "IQ", "Iraq", "🇮🇶"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/iq.svg",
+        enabled: false
+    },
+    {
+        name: "阿富汗",
+        keywords: ["阿富汗", "AF", "Afghanistan", "🇦🇫"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/af.svg",
+        enabled: false
+    },
+    {
+        name: "蒙古",
+        keywords: ["蒙古", "MN", "Mongolia", "🇲🇳"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/mn.svg",
+        enabled: false
+    },
+    {
+        name: "阿曼",
+        keywords: ["阿曼", "OM", "Oman", "🇴🇲"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/om.svg",
+        enabled: false
+    }
+    {
+        name: "Download",
+        keywords: ["c7s801"],
+        icon: "https://flagicons.lipis.dev/flags/4x3/om.svg",
+        enabled: true
+    }
+];
+
+/**
+ * 代理规则配置
+ * name: 规则名称
+ * gfw: 是否被墙 (true=默认走代理, false=默认直连)
+ * urls: 规则集链接，可以是单个URL或URL数组
+ * payload: 自定义规则内容，设置后urls将被忽略
+ * extraProxies: 额外添加到此规则组的代理，例如REJECT用于广告拦截
+ */
+const PROXY_RULES = [
+    // Ads
+    {
+        name: "Ads", // 规则名称
+        gfw: false,       // 不被墙，默认不走代理
+        extraProxies: "REJECT", // 额外代理为REJECT，即拒绝连接
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/AdvertisingLite/AdvertisingLite_Classical.yaml", // 规则集URL
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/Reject.png"  // 规则图标URL
+    },
+
+    // 自定义规则示例
+    {
+        name: "Linux.do",
+        gfw: false,
+        payload: "DOMAIN-SUFFIX,linux.do", // 自定义规则内容，匹配linux.do及其子域名
+        icon: "https://linux.do/uploads/default/original/3X/9/d/9dd49731091ce8656e94433a26a3ef36062b3994.png"
+    },
+
+    // 常用网站分组
+    {
+        name: "GitHub",
+        gfw: false,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/GitHub/GitHub.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/GitHub.png"
+    },
+    {
+        name: "Cloudflare",
+        gfw: false,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Cloudflare/Cloudflare_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Cloudflare.png"
+    },
+    {
+        name: "Microsoft",
+        gfw: false,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Microsoft/Microsoft_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Microsoft.png"
+    },
+    {
+        name: "OneDrive",
+        gfw: false,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/OneDrive/OneDrive_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/OneDrive.png"
+    },
+    {
+        name: "Google",
+        gfw: true,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Google/Google_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png"
+    },
+    {
+        name: "YouTube",
+        gfw: true,
+        urls: [
+            "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/YouTube/YouTube.yaml",
+            "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/YouTubeMusic/YouTubeMusic.yaml"
+        ],
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/Color/YouTube.png"
+    },
+    {
+        name: "OpenAi",
+        gfw: true,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/OpenAI/OpenAI_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/ChatGPT.png"
+    },
+    {
+        name: "Anthropic",
+        gfw: true,
+        urls: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/refs/heads/meta/geo/geosite/classical/anthropic.yaml",
+        icon: "https://images.seeklogo.com/logo-png/51/1/anthropic-icon-logo-png_seeklogo-515014.png"
+    },
+    {
+        name: "Spotify",
+        gfw: true,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Spotify/Spotify.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Spotify.png",
+    },
+    {
+        name: "TikTok",
+        gfw: true,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/TikTok/TikTok_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/TikTok.png"
+    },
+    {
+        name: "Twitter",
+        gfw: true,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Twitter/Twitter_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Twitter.png"
+    },
+    {
+        name: "Facebook",
+        gfw: true,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Facebook/Facebook_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Facebook.png"
+    },
+    {
+        name: "Steam",
+        gfw: false,
+        urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@release/rule/Clash/Steam/Steam_No_Resolve.yaml",
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Steam.png"
+    },
+    // 在此添加更多规则...
+];
+
+/**
+ * 自定义代理组在 Clash 面板中的显示顺序
+ * 包含所有基础组、PROXY_RULES 中的组以及启用的地区分组（动态生成）
+ * 按此数组的顺序排列，未列出的组将按默认顺序追加到末尾
+ */
+const PROXY_GROUP_ORDER = [
+    "Proxy",
+    "World",
+    "Outside",
+    "Ads",
+    "Linux.do",
+    "YouTube",	
+    "OpenAi",
+    "Anthropic",
+    "Microsoft",
+    "Google",		
+	  "Spotify",		   
+    "Steam",
+    "GitHub",
+    "Cloudflare",
+    "OneDrive",
+    "TikTok",
+    "Twitter",
+    "Facebook",
+    "Auto",
+    "Feedback",	
+    "China",
+    // 以下为启用的地区分组（自动选优和负载均衡）
+    "香港-自动选优",
+    "香港-负载均衡",
+    "台湾-自动选优",
+    "台湾-负载均衡",
+    "日本-自动选优",
+    "日本-负载均衡",
+    "韩国-自动选优",
+    "韩国-负载均衡",
+    "美国-自动选优",
+    "美国-负载均衡",	
+    "越南-自动选优",
+    "越南-负载均衡",
+    "泰国-自动选优",
+    "泰国-负载均衡",
+    "菲律宾-自动选优",
+    "菲律宾-负载均衡",
+    "马来西亚-自动选优",
+    "马来西亚-负载均衡",
+    "新加坡-自动选优",
+    "新加坡-负载均衡",
+    "柬埔寨-自动选优",
+    "柬埔寨-负载均衡",
+    "印度尼西亚-自动选优",
+    "印度尼西亚-负载均衡",
+    "缅甸-自动选优",
+    "缅甸-负载均衡",
+    "老挝-自动选优",
+    "老挝-负载均衡",
+    "印度-自动选优",
+    "印度-负载均衡",
+    "孟加拉-自动选优",
+    "孟加拉-负载均衡",
+    "巴基斯坦-自动选优",
+    "巴基斯坦-负载均衡",
+    "俄罗斯-自动选优",
+    "俄罗斯-负载均衡",
+    "尼日利亚-自动选优",
+    "尼日利亚-负载均衡"
+];
+
+/**
+ * DNS 配置
+ * 可根据需要修改DNS服务器
+ */
+const DNS_CONFIG = {
+    // 国际可信DNS (加密)
+    trustDnsList: [
+        "tls://8.8.8.8", "tls://1.1.1.1", "tls://9.9.9.9", // 使用TLS加密的Google DNS, Cloudflare DNS, Quad9 DNS
+        "https://8.8.8.8/dns-query", "https://1.1.1.1/dns-query" // 使用HTTPS加密的Google DNS, Cloudflare DNS
+    ],
+
+    // 用于解析域名服务器的默认DNS（必须为IP，可加密）
+    defaultDNS: ["tls://1.12.12.12", "tls://223.5.5.5"], // 默认DNS服务器，用于解析其他DNS服务器的域名，使用TLS加密
+
+    // 中国大陆DNS服务器
+    cnDnsList: [
+        '119.29.29.29',                    // Tencent Dnspod
+        '223.5.5.5',                       // Ali DNS
+    ],
+
+    // DNS隐私保护过滤器
+    fakeIpFilter: [
+        "+.lan", "+.local", // 过滤本地局域网域名
+        // Windows网络连接检测
+        "+.msftconnecttest.com", "+.msftncsi.com", // 过滤Windows网络连接测试域名
+        // QQ/微信快速登录检测
+        "localhost.ptlogin2.qq.com", "localhost.sec.qq.com",
+        "localhost.work.weixin.qq.com",
+    ],
+
+    // 指定域名使用的DNS服务器
+    // 格式: "域名或geosite": DNS服务器
+    nameserverPolicy: {
+        "geosite:private": "system", // 匹配本地私有域名，使用系统DNS服务器
+        "geosite:cn,steam@cn,category-games@cn,microsoft@cn,apple@cn": 'cnDnsList' // 匹配中国大陆网站、Steam、游戏分类、微软、苹果相关域名，使用中国大陆DNS服务器
+    },
+
+    // 需要指定使用国外DNS的域名
+    fallbackDomains: [
+        "+.azure.com", "+.bing.com", "+.bingapis.com",
+        "+.cloudflare.net", "+.docker.com", "+.docker.io",
+        "+.facebook.com", "+.github.com", "+.githubusercontent.com",
+        "+.google.com", "+.gstatic.com", "+.google.dev",
+        "+.googleapis.cn", "+.googleapis.com", "+.googlevideo.com",
+        "+.instagram.com", "+.meta.ai", "+.microsoft.com",
+        "+.microsoftapp.net", "+.msn.com", "+.openai.com",
+        "+.poe.com", "+.t.me", "+.twitter.com",
+        "+.x.com", "+.youtube.com"
+    ]
+};
+
+// ==================== 系统实现区（一般不需要修改） ====================
+
+// 构建DNS配置对象
+const dns = buildDnsConfig(DNS_CONFIG);
+
+// ==================== 辅助函数部分 ====================
+
+/**
+ * 构建DNS配置对象
+ * @param {Object} config - DNS配置参数
+ * @returns {Object} 完整的DNS配置对象
+ */
+function buildDnsConfig(config) {
+    return {
+        enable: true, // 启用DNS
+        listen: ":53", // 监听端口为53，即DNS默认端口
+        ipv6: true,     // 启用IPv6
+        "prefer-h3": true, // 一种加密的基于 QUIC 协议实现的DNS 协议，据说查询速度很快
+        "use-hosts": true, // 使用hosts文件
+        "use-system-hosts": true, // 使用系统hosts文件
+        "respect-rules": true, // 遵循规则中指定的DNS服务器
+        "enhanced-mode": "fake-ip", // 使用Fake IP模式，提高性能和隐私性
+        "fake-ip-range": "198.18.0.1/16", // Fake IP地址范围
+        "fake-ip-filter": config.fakeIpFilter, // Fake IP过滤器
+        "default-nameserver": config.defaultDNS, // 默认DNS服务器,用于解析nameserver中的加密 dns
+        nameserver: config.trustDnsList,       // 可信DNS服务器
+        "proxy-server-nameserver": config.cnDnsList, // 代理服务器使用的DNS服务器
+        "nameserver-policy": { // 指定域名查询的解析服务器，可使用 geosite, 优先于 nameserver/fallback 查询
+            "geosite:private": "system",
+            "geosite:cn,steam@cn,category-games@cn,microsoft@cn,apple@cn": config.cnDnsList,
+        },
+        fallback: config.trustDnsList, // 后备域名解析服务器，一般情况下使用境外 DNS, 保证结果可信配置 fallback后默认启用 fallback-filter,geoip-code为 cn,解析墙外域名的，因此不能使用国内DNS，我设置为国外加密 dns
+        "fallback-filter": { // 回退过滤器，指定哪些域名使用回退DNS服务器
+            geoip: true,
+            "geoip-code": "CN",
+            geosite: ["gfw"],
+            ipcidr: ["240.0.0.0/4"],
+            domain: config.fallbackDomains
+        }
+    };
+}
+
+/**
+ * 创建规则提供器配置 - 使用对象复用优化性能
+ * @param {string} url - 规则集URL
+ * @returns {Object} 规则提供器配置对象
+ */
+function createRuleProviderUrl(url) {
+    return {
+        type: "http", // 类型为HTTP
+        interval: 86400, // 更新间隔为86400秒，即24小时
+        behavior: "classical", // 行为为classical
+        format: "yaml",   // 格式为YAML
+        url                 // 规则集URL
+    };
+}
+
+/**
+ * 创建payload对应的规则 - 优化数组操作
+ * @param {string|string[]} payload - 规则内容
+ * @param {string} name - 规则名称
+ * @returns {string[]} 处理后的规则列表
+ */
+function createPayloadRules(payload, name) {
+    const payloads = Array.isArray(payload) ? payload : [payload]; // 确保payload是数组
+    const len = payloads.length;
+    const rules = new Array(len);
+    // 直接调用 replace 而非 replaceAll（多数环境中效果相似且高效）
+    const normalizedName = name.split(",").join("-"); // 将规则名称中的逗号替换为短横线，以便在Clash中使用
+
+    for (let i = 0; i < len; i++) {
+        const item = payloads[i];
+        const p = item.split(","); // 将规则项按逗号分割成数组
+        let insertPos = p.length;
+
+        // 比较时避免转换大小写
+        const last = p[p.length - 1];
+        if (last === "no-resolve" || last === "NO-RESOLVE") { // 检查规则项是否包含no-resolve
+            insertPos--; // 如果包含，则插入位置向前移动一位
+        }
+
+        p.splice(insertPos, 0, normalizedName); // 在指定位置插入规则名称
+        rules[i] = p.join(",");             // 将数组重新组合成字符串
+    }
+
+    return rules; // 返回处理后的规则列表
+}
+
+/**
+ * 创建GFW（被墙）代理组
+ * @param {string} name - 代理组名称
+ * @param {string|string[]} addProxies - 额外代理
+ * @param {string} testUrl - 测试链接
+ * @param {string} icon - 代理组图标
+ * @param {string[]} regionGroupNames - 所有地区的代理组名称
+ * @returns {Object} 代理组配置
+ */
+function createGfwProxyGroup(name, addProxies, testUrl, icon, regionGroupNames) {
+    addProxies = addProxies ? (Array.isArray(addProxies) ? addProxies : [addProxies]) : []; // 确保addProxies是数组
+    return {
+        "name": name, // 代理组名称
+        "type": "select", // 代理组类型为select，即手动选择
+        // 确保包含所有地区分组的两个版本
+        "proxies": ["模式选择", ...addProxies, ...regionGroupNames, "所有节点-自动选优", "所有节点-负载均衡", "DIRECT"], // 代理服务器列表，包含模式选择、额外代理、地区分组、自动选优、负载均衡和直连
+        "include-all": true, // 包含所有代理服务器
+        "url": testUrl,       // 测试URL，用于检测代理服务器连通性
+        "icon": icon         // 代理组图标URL
+    };
+}
+
+/**
+ * 创建普通（非GFW）代理组
+ * @param {string} name - 代理组名称
+ * @param {string|string[]} addProxies - 额外代理
+ * @param {string} testUrl - 测试链接
+ * @param {string} icon - 代理组图标
+ * @param {string[]} regionGroupNames - 所有地区的代理组名称
+ * @returns {Object} 代理组配置
+ */
+function createProxyGroup(name, addProxies, testUrl, icon, regionGroupNames) {
+    addProxies = addProxies ? (Array.isArray(addProxies) ? addProxies : [addProxies]) : [];
+    return {
+        "name": name,
+        "type": "select",
+        // 确保包含所有地区分组的两个版本
+        "proxies": ["模式选择", ...addProxies, ...regionGroupNames, "DIRECT", "所有节点-自动选优", "所有节点-负载均衡"],
+        "include-all": true,
+        "url": testUrl,
+        "icon": icon
+    };
+}
+
+/**
+ * 构建基本代理组
+ * @param {Array} proxies - 所有代理节点
+ * @param {string} testUrl - 测试URL
+ * @returns {Array} 基本代理组配置
+ */
+function buildBaseProxyGroups(proxies, testUrl) {
+    // 动态筛选启用且有实际代理节点的地区
+    const availableRegions = REGIONS.filter(region => 
+        region.enabled && 
+        proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
+    );
+
+    // 创建地区分组的自动选优和负载均衡版本
+    const regionGroupsAutoSelect = availableRegions.map(region => {
+        const regionProxies = proxies.filter(proxy =>
+            region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase()))
+        ).map(proxy => proxy.name);
+        return {
+            name: `${region.name}-自动选优`, // 地区名称加上自动选优后缀
+            type: "url-test", // 使用url-test模式
+            proxies: regionProxies, // 包含该地区的代理服务器
+            url: testUrl,         // 测试URL
+            interval: CONFIG.testInterval, // 测试间隔
+            icon: region.icon       // 地区图标
+        };
+    });
+
+    const regionGroupsLoadBalance = availableRegions.map(region => {
+        const regionProxies = proxies.filter(proxy =>
+            region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase()))
+        ).map(proxy => proxy.name);
+        return {
+            name: `${region.name}-负载均衡`, // 地区名称加上负载均衡后缀
+            type: "load-balance", // 使用load-balance模式
+            proxies: regionProxies, // 包含该地区的代理服务器
+            url: testUrl,         // 测试URL
+            interval: CONFIG.testInterval, // 测试间隔
+            strategy: CONFIG.balanceStrategy, // 使用配置的负载均衡策略
+            icon: region.icon       // 地区图标
+        };
+    });
+
+    // 合并两个版本的地区分组
+    const regionGroups = [...regionGroupsAutoSelect, ...regionGroupsLoadBalance];
+
+    // 按地区顺序生成地区分组名称，每对为“自动选优”和“负载均衡”
+    const regionGroupNames = availableRegions.map(region => [
+        `${region.name}-自动选优`,
+        `${region.name}-负载均衡`
+    ]).flat();
+
+    // 创建“模式选择”组，确保即使 regionGroupNames 为空，也有默认选项
+    const areaSelectGroup = {
+        name: "Proxy",
+        type: "select",
+        proxies: ["Auto", "Feedback", "DIRECT", ...regionGroupNames],
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png"
+    };
+
+    // 其他基本代理组
+    const otherGroups = [
+        {
+            "name": "China",
+            "type": "select",
+            "proxies": ["DIRECT"],
+            "include-all": true,
+            "url": "https://www.baidu.com/favicon.ico",
+            "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/China.png"
+        },
+        {
+            "name": "World",
+            "type": "select",
+            "proxies": ["Proxy", "DIRECT"],
+            "include-all": true,
+            "url": "https://www.bing.com/favicon.ico",
+            "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Nations.png"
+        },
+        {
+            "name": "Outside",
+            "type": "select",
+            "proxies": ["Proxy", "DIRECT"],
+            "include-all": true,
+            "url": testUrl,
+            "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Lock.png"
+        },
+        // 自动选优和负载均衡
+        {
+            "name": "Auto",
+            "type": "url-test",
+            "tolerance": CONFIG.tolerance,
+            "include-all": true,
+            "url": testUrl,
+            "interval": CONFIG.testInterval,
+            "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Proxy.png"
+        },
+        {
+            "name": "Feedback",
+            "type": "load-balance",
+            "include-all": true,
+            "strategy": CONFIG.balanceStrategy,
+            "url": testUrl,
+            "interval": CONFIG.testInterval,
+            "icon": "https://www.clashverge.dev/assets/icons/balance.svg"
+        },
+        ...regionGroups
+    ];
+
+    // 将“模式选择”组放在最前面
+    return [areaSelectGroup, ...otherGroups];
+}
+
+/**
+ * 主函数：生成完整的Clash配置
+ * @param {Object} config - 输入配置
+ * @returns {Object} 完整的Clash配置
+ */
+function main(config) {
+    const { proxies } = config; // 从输入配置中获取代理服务器列表
+    const testUrl = CONFIG.testUrl; // 获取全局测试URL
+
+    // 初始化规则和代理组
+    const rules = USER_RULES.slice(); // 复制用户自定义规则，防止修改原始数组
+    const customProxyGroups = []; // 存储 PROXY_RULES 生成的代理组
+
+    // 规则集通用配置
+    const ruleProviderCommon = {
+        type: "http",
+        format: "yaml",
+        interval: 86400
+    };
+
+    // 初始化规则提供器
+    const ruleProviders = {
+        reject: {
+            ...ruleProviderCommon,
+            behavior: "domain",
+            url: "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt",
+            path: "./ruleset/loyalsoldier/reject.yaml"
+        },
+        cncidr: {
+            ...ruleProviderCommon,
+            behavior: "ipcidr",
+            url: "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt",
+            path: "./ruleset/loyalsoldier/cncidr.yaml"
+        },
+        direct: {
+            ...ruleProviderCommon,
+            behavior: "domain",
+            url: "https://fastly.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt",
+            path: "./ruleset/loyalsoldier/direct.yaml"
+        }
+    };
+
+    // 获取所有启用的地区的代理组名称
+    const availableRegions = REGIONS.filter(region =>
+        region.enabled && 
+        proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
+    );
+    const regionGroupNames = availableRegions.map(region => [
+        `${region.name}-自动选优`,
+        `${region.name}-负载均衡`
+    ]).flat();
+
+    // 生成 PROXY_RULES 的代理组
+    PROXY_RULES.forEach(({ name, gfw, urls, payload, extraProxies, icon }) => { // 遍历代理规则配置
+        let group;
+        if (name === "Ads") {
+            group = {
+                "name": name,
+                "type": "select",
+                "proxies": [extraProxies],
+                "include-all": false,
+                "url": testUrl,
+                "icon": icon
+            };
+        } else if (gfw) { // 如果是GFW规则
+            group = createGfwProxyGroup(name, extraProxies, testUrl, icon, regionGroupNames); // 创建GFW代理组
+        } else { // 如果是非GFW规则
+            group = createProxyGroup(name, extraProxies, testUrl, icon, regionGroupNames); // 创建普通代理组
+        }
+        customProxyGroups.push(group);
+
+        if (payload) {
+            rules.push(...createPayloadRules(payload, name)); // 添加到规则列表
+        } else if (urls) { // 如果有规则集URL
+            const urlList = Array.isArray(urls) ? urls : [urls]; // 确保urls是数组
+            urlList.forEach((theUrl, j) => {
+                const iName = `${name}-rule${j !== 0 ? `-${j}` : ''}`; // 生成唯一的规则提供器名称
+                ruleProviders[iName] = createRuleProviderUrl(theUrl); // 创建规则提供器
+                rules.push(`RULE-SET,${iName},${name}`); // 添加规则集规则
+            });
+        }
+    });
+
+    // 构建基本代理组
+    const baseProxyGroups = buildBaseProxyGroups(proxies, testUrl);
+
+    // 创建所有代理组的映射
+    const allProxyGroupsMap = new Map();
+    baseProxyGroups.forEach(group => allProxyGroupsMap.set(group.name, group));
+    customProxyGroups.forEach(group => allProxyGroupsMap.set(group.name, group));
+
+    // 根据 PROXY_GROUP_ORDER 排序
+    const orderedProxyGroups = [];
+    PROXY_GROUP_ORDER.forEach(name => {
+        const group = allProxyGroupsMap.get(name);
+        if (group) {
+            orderedProxyGroups.push(group);
+            allProxyGroupsMap.delete(name); // 删除已添加的组，避免重复
+        }
+    });
+
+    // 将剩余未排序的组追加到末尾
+    const remainingGroups = Array.from(allProxyGroupsMap.values());
+    const finalProxyGroups = [...orderedProxyGroups, ...remainingGroups];
+
+    // 构建最终配置
+    return {
+        mode: "rule", // 模式为规则模式
+        "find-process-mode": "strict",
+        "global-client-fingerprint": "chrome",
+        "unified-delay": true,
+        "tcp-concurrent": true,
+        "geox-url": {
+            geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat",
+            geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
+        },
+        dns, // 使用之前构建的DNS配置
+        proxies, // 使用传入的代理服务器列表
+        "proxy-groups": finalProxyGroups,
+        "rule-providers": ruleProviders, // 使用之前构建的规则提供器
+        rules: [
+            ...rules,
+            ...SAVED_RULES
+        ]
+    };
+}
