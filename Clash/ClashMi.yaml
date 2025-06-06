@@ -234,75 +234,66 @@ proxy-groups:
   #分隔,下面是地區分組
 
   - name: US
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_States.png
+    include-all: true
     filter: "(?i)美|us|unitedstates|united states|c7s1|c7s2|c7s3"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true    
+    strategy: consistent-hashing
+    hidden: false
     
   - name: JP
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Japan.png
+    include-all: true
     filter: "(?i)日|jp|japan|c7s4"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true    
+    strategy: consistent-hashing
+    hidden: false
 
   - name: SG
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore
+    include-all: true
     filter: "(?i)新|sg|singapore"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true
+    strategy: consistent-hashing
+    hidden: true
 
   - name: NL
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany
+    include-all: true
     filter: "(?i)nl|荷|c7s5"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true
+    strategy: consistent-hashing
+    hidden: false
     
   - name: HK
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong
+    include-all: true
     filter: "(?i)港|hk|hongkong|hong kong"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true
+    strategy: consistent-hashing
+    hidden: true
           
   - name: TW
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan
     filter: "(?i)台|tw|taiwan"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true    
-
+    strategy: consistent-hashing
+    hidden: true    
 
   - name: Download
-    type: url-test
-    use:
-      - ProviderAirPort
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Download
+    include-all: true
     filter: "(?i)(c7s801)"
     url: 'http://www.apple.com/library/test/success.html'
     interval: 300
-    tolerance: 50
-    #lazy: true
+    strategy: consistent-hashing
+    hidden: false
 
   - name: All
     type: select
