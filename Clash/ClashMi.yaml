@@ -1,361 +1,292 @@
-/**
  * ClashMi
- * MIT License ~
  * author : William
- *
- * Modified and fixed by Gemini
- */
-// ==================== 用户配置区
-# 混合端口
-mixed-port: 9520
-# 重定向端口
-redir-port: 1214
-# 透明代理端口
-tproxy-port: 1213
-# 允许局域网连接
-allow-lan: true
-# 规则模式
-mode: rule
-# 关闭 IPv6
-ipv6: false
-# 日志级别
-log-level: warning
+ * ==================== 用户配置区
+# url 里填寫自己的訂閱,名稱不能重復
+proxy-providers:
+  ProviderAirPort:
+    url: ""
+    type: http
+    interval: 86400
+    health-check: {enable: true,url: "http://www.apple.com/library/test/success.html",interval: 300}
+    # override:
+    #   additional-prefix: "[ProviderAirPort]"
+    
+proxies: 
+  - name: "Direct"
+    type: direct
 
-# 延迟和连接设置
-unified-delay: true
+mixed-port: 7890
+ipv6: false
+allow-lan: true
+unified-delay: false
 tcp-concurrent: true
-enable-process: true
+external-controller: 127.0.0.1:9090
+external-ui: ui
+external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+keep-alive-interval: 1800
+
+geodata-mode: true
+geodata-loader: standard
+geo-auto-update: false
+geo-update-interval: 24
+geox-url:
+  geoip: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat"
+  geosite: "https://mirror.ghproxy.com/https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://cdn.jsdelivr.net/gh/soffchen/GeoIP2-CN@release/Country.mmdb"
+  asn: "https://mirror.ghproxy.com/https://github.com/xishang0128/geoip/releases/download/latest/GeoLite2-ASN.mmdb"
+
 find-process-mode: strict
-keep-alive-idle: 180
-keep-alive-interval: 15
-disable-keep-alive: false
+global-client-fingerprint: chrome
+
 profile:
   store-selected: true
+  store-fake-ip: true
 
-# GEO 数据库设置
-geodata-mode: true
-geodata-loader: memconservative
-geo-auto-update: true
-geo-update-interval: 48
-geox-url:
-  geoip: "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
-  geosite: "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
-
-# 控制面板 API
-external-controller: 127.0.0.1:9521
-secret: "ApasswordLinuxDo"
-
-# 流量嗅探
 sniffer:
   enable: true
-  force-dns-mapping: true
-  parse-pure-ip: true
-  override-destination: true
   sniff:
-    QUIC:
-      ports: [ 443, 8443 ]
-    TLS:
-      ports: [ 443, 8443 ]
     HTTP:
-      ports: [ 80, 443, 8080-8880 ]
+      ports: [80, 8080-8880]
       override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
   skip-domain:
     - "Mijia Cloud"
     - "+.push.apple.com"
-    - "mtalk.google.com"
-    - "rule-set:private_domain,lan_non_ip"
 
-# TUN 模式
 tun:
   enable: true
-  device: Mihomo
   stack: mixed
-  mtu: 1500
   dns-hijack:
     - "any:53"
     - "tcp://any:53"
-  auto-router: true
+  auto-route: true
+  auto-redirect: true
   auto-detect-interface: true
-  strict-route: true
 
-# DNS 模块
 dns:
   enable: true
-  cache-algorithm: arc
-  prefer-h3: true
-  use-hosts: true
-  use-system-hosts: false
-  listen: 0.0.0.0:1053
   ipv6: false
-  respect-rules: false
-  enhanced-mode: redir-host
-  fake-ip-range: 10.0.0.1/16
-  default-nameserver:
-    - quic://223.5.5.5
-    - tls://1.12.12.12
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+    - "*"
+    - "+.lan"
+    - "+.local"
+    - "+.market.xiaomi.com"
   nameserver:
-    - quic://fly.dns.vlo.cc
+    - https://120.53.53.53/dns-query
+    - https://223.5.5.5/dns-query
   proxy-server-nameserver:
-    - https://v4.vlo.cc/520/psn
-
-# --- 订阅配置 ---
-# YAML 锚点，用于复用配置
-p: &p
-  type: http
-  udp: true
-  interval: 21600
-  smux:
-    enabled: true
-    padding: true
-    brutal-opts:
-      enabled: true
-
-# 引用所有订阅的锚点
-u: &u
-  use:
-    - dy1
-    - dy2
-    - dy3
-
-# 代理订阅提供者
-proxy-providers:
-  dy1:
-    <<: *p
-    path: ./proxy_provider/p1.yaml
-    # !!! 在这里填入你的第一个订阅链接 !!!
-    url: ""
-    exclude-filter: "(?i)剩余|距离|套餐|官网|建议"
-    override:
-      additional-prefix: "dy1 | "
-  dy2:
-    <<: *p
-    path: ./proxy_provider/p2.yaml
-    # !!! 在这里填入你的第二个订阅链接 !!!
-    url: ""
-    exclude-filter: "(?i)剩余|距离|套餐|官网|建议"
-    override:
-      additional-prefix: "dy2 | "
-  dy3:
-    <<: *p
-    path: ./proxy_provider/p3.yaml
-    # !!! 在这里填入你的第三个订阅链接 !!!
-    url: ""
-    exclude-filter: "(?i)剩余|距离|套餐|官网|建议"
-    override:
-      additional-prefix: "dy3 | "
-
-# 默认代理
-proxies:
-  - {name: Direct, type: direct, udp: true}
-
-# --- 策略组配置 ---
-# 主策略组锚点
-ouo: &ouo
-  type: select
-  # 整合了旧配置中启用的地区
-  proxies: [Mode, Manual, Auto, 负载-散列, 负载-轮询, 香港, 台湾, 日本, 新加坡, 美国, 韩国, 荷兰, 尼日利亚, 下载专用, Direct]
-  <<: *u
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  lazy: false
-  timeout: 5000
-  max-failed-times: 5
+    - https://120.53.53.53/dns-query
+    - https://223.5.5.5/dns-query
+  nameserver-policy:
+    "rule-set:cn_domain,private_domain":
+      - https://120.53.53.53/dns-query
+      - https://223.5.5.5/dns-query
+    "rule-set:geolocation-!cn":
+      - "https://dns.cloudflare.com/dns-query"
+      - "https://dns.google/dns-query"
 
 proxy-groups:
-  # 主选择器
-  - {name: Mode, type: select, proxies: [Manual, Auto, 负载-散列, 负载-轮询, 香港, 台湾, 日本, 新加坡, 美国, 韩国, 荷兰, 尼日利亚, 下载专用], url: "https://www.gstatic.com/generate_204", interval: 300, lazy: false, timeout: 5000, max-failed-times: 5}
-  - {name: Manual, type: select, proxies: [], <<: *u, url: "https://www.gstatic.com/generate_204", interval: 300, lazy: false, timeout: 5000, max-failed-times: 5}
 
-  # 应用策略组
-  - {name: YouTube, <<: *ouo}
-  - {name: Google, <<: *ouo}
-  - {name: Microsoft, <<: *ouo}
-  - {name: Apple, <<: *ouo}
-  - {name: AIGC, <<: *ouo}
-  - {name: Stream, <<: *ouo}
-  - {name: Games, <<: *ouo}
-  - {name: TG, <<: *ouo}
-  - {name: FCM, <<: *ouo}
-  - {name: Download, <<: *ouo}
-  - {name: World, <<: *ouo}
+  - name: Proxy
+    type: select
+    proxies: [HK,TW,JP,SG,US,NL,Download,All,Direct]
 
-  # 功能策略组
-  - {name: Auto, type: url-test, proxies: [], <<: *u, url: "https://www.gstatic.com/generate_204", interval: 300, tolerance: 30, lazy: false, timeout: 5000, max-failed-times: 5}
-  - {name: 负载-散列, type: load-balance, proxies: [], <<: *u, url: "https://www.gstatic.com/generate_204", strategy: sticky-sessions, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 负载-轮询, type: load-balance, proxies: [], <<: *u, url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
+  - name: Google
+    type: select
+    proxies: [Proxy,HK,TW,JP,SG,US,All,Direct]
 
-  # 地区策略组
-  - {name: 香港, type: load-balance, proxies: [], <<: *u, filter: "(?i)港|香港|hk|hongkong", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 台湾, type: load-balance, proxies: [], <<: *u, filter: "(?i)台|台湾|tw|TW", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 日本, type: load-balance, proxies: [], <<: *u, filter: "(?i)日|日本|japan|JP", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 新加坡, type: load-balance, proxies: [], <<: *u, filter: "(?i)新|新加坡|sg|SG", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 美国, type: load-balance, proxies: [], <<: *u, filter: "(?i)美|美国|us|united states|america|los angeles|san jose|silicon valley|USA|U.S", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  # -- 以下为根据你的旧配置新增的分组 --
-  - {name: 韩国, type: load-balance, proxies: [], <<: *u, filter: "(?i)韩|韓國|kr|korea", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 荷兰, type: load-balance, proxies: [], <<: *u, filter: "(?i)荷兰|nl|netherlands", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 尼日利亚, type: load-balance, proxies: [], <<: *u, filter: "(?i)尼日利亚|ng|ngr|niger", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
-  - {name: 下载专用, type: load-balance, proxies: [], <<: *u, filter: "(?i)c7s801", url: "https://www.gstatic.com/generate_204", strategy: round-robin, interval: 300, lazy: true, timeout: 5000, max-failed-times: 5}
+  - name: Telegram
+    type: select
+    proxies: [Proxy,HK,TW,JP,SG,US,All,Direct]
+
+  - name: Twitter
+    type: select
+    proxies: [Proxy,HK,TW,JP,SG,US,All,Direct]
+
+  - name: YouTube
+    type: select
+    proxies: [Proxy,HK,TW,JP,SG,US,All,Direct]
+
+  - name: Github
+    type: select
+    proxies:  [Proxy,HK,TW,JP,SG,US,All,Direct]
+
+  - name: OpenAI
+    type: select
+    proxies:  [Proxy,TW,JP,SG,US]
+
+  - name: Microsoft
+    type: select
+    proxies:  [Proxy,HK,TW,JP,SG,US,All,Direct]
+
+  - name: CN
+    type: select
+    proxies:  [Direct,Proxy,HK,TW,JP,SG,US,All]
+
+  - name: World
+    type: select
+    proxies:  [Proxy,HK,TW,JP,SG,US,All,Direct]
 
 
-# --- 规则集 ---
-rule-anchor:
-  ip: &ip {type: http, interval: 43200, behavior: ipcidr, format: mrs}
-  domain: &domain {type: http, interval: 43200, behavior: domain, format: mrs}
-  domain_reject: &domain_reject {type: http, interval: 3600, behavior: domain, format: mrs}
-  skk_classical: &skk_classical {type: http, behavior: classical, interval: 86400, format: text}
-  skk_domain: &skk_domain {type: http, behavior: domain, interval: 86400, format: mrs}
-  skk_ipcidr: &skk_ipcidr {type: http, behavior: ipcidr, interval: 86400, format: mrs}
+  #分隔,下面是地區分組
 
-rule-providers:
-  # reject
-  myblack_domain: { <<: *domain, url: https://rules.vlo.cc/myblack.mrs}
-  mywhite_domain: { <<: *domain, url: https://rules.vlo.cc/mywhite.mrs}
-  qiufeng_domain: { <<: *domain, url: https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs}
+  - name: US
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)美|us|unitedstates|united states|c7s1|c7s2|c7s3"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true    
+    
+  - name: JP
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)日|jp|japan|c7s4"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true    
 
-  # domain
-    # AI
-  OpenAI_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/openai.mrs}
-  Gemini_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/google-gemini.mrs}
-  ai_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/ai.mrs}
+  - name: SG
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)新|sg|singapore"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true
 
-    # 服务
-  fcm_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/googlefcm.mrs}
-  youtube_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/youtube.mrs}
-  google_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/google.mrs}
-  microsoft_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/microsoft.mrs}
-  onedrive_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/onedrive.mrs}
-  telegram_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/telegram.mrs}
-  apple_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/apple.mrs}
-  cloudflare_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/cloudflare.mrs}
-  apple_services_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/apple_services.mrs}
+  - name: NL
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)nl|荷|c7s5"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true
+    
+  - name: HK
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)港|hk|hongkong|hong kong"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true
+          
+  - name: TW
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)台|tw|taiwan"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true    
 
-    # 游戏
-  steam_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam.mrs}
-  steamcn_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam@cn.mrs}
-  epic_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/epicgames.mrs}
-  games_cn: { <<: *domain, url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/games-cn.mrs}
-  games: { <<: *domain, url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/games.mrs}
 
-    # Stream
-  stream_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/stream.mrs}
+  - name: Download
+    type: url-test
+    use:
+      - ProviderAirPort
+    filter: "(?i)(c7s801)"
+    url: 'http://www.apple.com/library/test/success.html'
+    interval: 300
+    tolerance: 50
+    #lazy: true
 
-    # GEO Rule
-  private_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/private.mrs}
-  geolocation-!cn_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/geolocation-!cn.mrs}
-  CN_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/cn.mrs}
-  geolocation-cn_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/geolocation-cn.mrs}
-  gfw_domain: { <<: *domain, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/gfw.mrs}
-  proxy: { <<: *domain, url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/proxy.mrs}
-  CN: { <<: *domain, url: https://github.com/DustinWin/ruleset_geodata/releases/download/mihomo-ruleset/cn.mrs}
+  - name: All
+    type: select
+    include-all: true
 
-  # ip
-    #服务
-  google_ip: { <<: *ip, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/google.mrs}
-  telegram_ip: { <<: *ip, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/telegram.mrs}
-  cloudflare_ip: { <<: *ip, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/cloudflare.mrs}
-    # Stream
-  netflix_ip: { <<: *ip, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/netflix.mrs}
-    # GEO Rule
-  CN_ip: { <<: *ip, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/cn.mrs}
-  private_ip: { <<: *ip, url: https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/private.mrs}
-  ChinaIPsBGP_ip: { <<: *ip, url: https://github.com/peiyingyao/Rule-for-OCD/raw/refs/heads/master/rule/Clash/ChinaIPsBGP/ChinaIPsBGP_OCD_IP.mrs}
-
-  # 狐狐补充规则
-  cdn_domainset: { <<: *skk_domain, url: https://rules.vlo.cc/mihomorules/cdn_domainset.mrs}
-  cdn_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/cdn.mrs}
-  direct_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/direct.mrs}
-  domestic_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/domestic.mrs}
-  global_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/global.mrs}
-  lan_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/lan.mrs}
-  microsoft_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/microsoft.mrs}
-  telegram_non_ip: { <<: *skk_domain, url: https://rules.vlo.cc/askk/domain/telegram.mrs}
-  download_domainset: { <<: *skk_domain, url: https://rules.vlo.cc/mihomorules/download_domainset.mrs}
-  tg_ip: { <<: *skk_ipcidr, url: https://rules.vlo.cc/mihomorules/telegram_ip.mrs}
-  stream_ip: { <<: *skk_ipcidr, url: https://rules.vlo.cc/mihomorules/stream_ip.mrs}
-  lan_ip: { <<: *skk_ipcidr, url: https://rules.vlo.cc/mihomorules/lan_ip.mrs}
-  domestic_ip: { <<: *skk_ipcidr, url: https://rules.vlo.cc/askk/ipcidr/domestic.mrs}
-
-# --- 分流规则 ---
 rules:
-  # -- 自定义规则 (已从你的旧配置中导入) --
-  - DOMAIN-SUFFIX,v2ex.com,Manual
-  - DOMAIN-SUFFIX,nodeseek.com,Manual
-  - DOMAIN-SUFFIX,mnapi.com,Direct
-  - DOMAIN-SUFFIX,ieee.org,Direct
-  - DOMAIN-SUFFIX,anrunnetwork.com,Direct
-  - DOMAIN-SUFFIX,apifox.com,Direct
-  - DOMAIN-SUFFIX,crond.dev,Direct
-  - DOMAIN-SUFFIX,linux.do,Direct
-  - IP-CIDR,223.113.52.0/22,Direct,no-resolve
-  - DST-PORT,22,Direct
-
-  # 广告拦截 (模板自带)
-  - RULE-SET,mywhite_domain,Direct
-  - RULE-SET,myblack_domain,REJECT
-  - RULE-SET,qiufeng_domain,REJECT
-
-  # GEO Rule 私域
-  - RULE-SET,private_domain,Direct
-  - RULE-SET,lan_non_ip,Direct
-  - RULE-SET,private_ip,Direct
-  - RULE-SET,lan_ip,Direct
-
-  # AI类
-  - RULE-SET,ai_non_ip,AIGC
-  - RULE-SET,OpenAI_domain,AIGC
-  - RULE-SET,Gemini_domain,AIGC
-
-  # 服务类
-  - RULE-SET,fcm_domain,FCM
+  - RULE-SET,private_ip,Direct,no-resolve
+  - RULE-SET,github_domain,Github
+  - RULE-SET,twitter_domain,Twitter
   - RULE-SET,youtube_domain,YouTube
   - RULE-SET,google_domain,Google
-  - RULE-SET,google_ip,Google
-
-  - RULE-SET,microsoft_non_ip,Microsoft
+  - RULE-SET,telegram_domain,Telegram
+  - RULE-SET,cn_domain,CN
+  - RULE-SET,openai_domain,OpenAI
   - RULE-SET,microsoft_domain,Microsoft
+  - RULE-SET,geolocation-!cn,World
+  - RULE-SET,gfw_domain,World  
 
-  - RULE-SET,onedrive_domain,Microsoft
-
-  - RULE-SET,telegram_non_ip,TG
-  - RULE-SET,telegram_domain,TG
-  - RULE-SET,tg_ip,TG
-  - RULE-SET,telegram_ip,TG
-  - RULE-SET,apple_services_non_ip,Apple
-  - RULE-SET,apple_domain,Apple
-
-  # 游戏类
-  - RULE-SET,games_cn,Direct
-  - RULE-SET,steamcn_domain,Direct
-  - RULE-SET,games,Games
-  - RULE-SET,steam_domain,Games
-  - RULE-SET,epic_domain,Games
-
-  # Stream
-  - RULE-SET,stream_non_ip,Stream
-  - RULE-SET,stream_ip,Stream
-  - RULE-SET,netflix_ip,Stream
-
-  # GEO Rule No cn
-  - RULE-SET,download_domainset,Mode
-  - RULE-SET,cdn_domainset,Mode
-  - RULE-SET,cdn_non_ip,Mode
-  - RULE-SET,cloudflare_domain,Mode
-  - RULE-SET,cloudflare_ip,Mode
-  - RULE-SET,global_non_ip,Mode
-  - RULE-SET,gfw_domain,Mode
-  - RULE-SET,geolocation-!cn_domain,Mode
-  - RULE-SET,proxy,Mode
-
-  # GEO Rule CN 域名
-  - RULE-SET,direct_non_ip,Direct
-  - RULE-SET,domestic_non_ip,Direct
-  - RULE-SET,geolocation-cn_domain,Direct
-  - RULE-SET,CN_domain,Direct
-  - RULE-SET,CN,Direct
-    # CN IP
-  - RULE-SET,domestic_ip,Direct
-  - RULE-SET,ChinaIPsBGP_ip,Direct
-  - RULE-SET,CN_ip,Direct
-
-  # 最终匹配
+  - RULE-SET,google_ip,Google
+  - RULE-SET,telegram_ip,Telegram
+  - RULE-SET,twitter_ip,Twitter
+  - RULE-SET,cn_ip,CN
   - MATCH,World
+
+  - GEOIP,google,Google
+  - GEOIP,telegram,Telegram
+  - GEOIP,twitter,Twitter
+  - GEOIP,CN,CN
+
+rule-anchor:
+  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: text}
+  domain: &domain {type: http, interval: 86400, behavior: domain, format: text}
+rule-providers:
+  private_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.list"
+  cn_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.list"
+  github_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.list"
+  twitter_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/twitter.list"
+  youtube_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.list"
+  google_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.list"
+  telegram_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.list"
+  openai_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.list"    
+  microsoft_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.list"      
+  geolocation-!cn:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.list"
+  gfw_domain:
+    <<: *domain
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.list"         
+
+  private_ip:
+    <<: *ip
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.list"
+  cn_ip:
+    <<: *ip
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.list"
+  google_ip:
+    <<: *ip
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.list"
+  netflix_ip:
+    <<: *ip
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.list"
+  twitter_ip:
+    <<: *ip
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/twitter.list"
+  telegram_ip:
+    <<: *ip
+    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.list"
