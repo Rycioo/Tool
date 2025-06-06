@@ -321,7 +321,23 @@ proxy-groups:
     proxies:
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
-
+ 
+  - name: Game
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Game.png
+    type: select
+    proxies:
+       - Proxy
+       - US
+       - JP
+       - NL
+       - Download
+       - HK
+       - SG
+       - TW
+       - All
+       - DIRECT
+    url: 'http://cp.cloudflare.com/generate_204'
+  
   - name: CN
     type: select
     proxies:
