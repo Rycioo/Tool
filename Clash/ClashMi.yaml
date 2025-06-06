@@ -384,7 +384,8 @@ proxy-groups:
     #hidden: true
 
   - name: SG
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore
+    type: select
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png
     include-all: true
     filter: "(?i)新|sg|singapore"
     url: 'http://www.apple.com/library/test/success.html'
@@ -394,7 +395,7 @@ proxy-groups:
 
   - name: NL
     type: select
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Germany.png
     include-all: true
     filter: "(?i)nl|荷|c7s5"
     url: 'http://www.apple.com/library/test/success.html'
@@ -403,7 +404,8 @@ proxy-groups:
     #hidden: true
     
   - name: HK
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong
+    type: select
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Hong_Kong.png
     include-all: true
     filter: "(?i)港|hk|hongkong|hong kong"
     url: 'http://www.apple.com/library/test/success.html'
@@ -412,7 +414,8 @@ proxy-groups:
     hidden: true
           
   - name: TW
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan
+    type: select
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Taiwan.png
     include-all: true
     filter: "(?i)台|tw|taiwan"
     url: 'http://www.apple.com/library/test/success.html'
@@ -422,7 +425,7 @@ proxy-groups:
 
   - name: Download
     type: select
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Download
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Qure.png
     include-all: true
     filter: "(?i)(c7s801)"
     url: 'http://www.apple.com/library/test/success.html'
