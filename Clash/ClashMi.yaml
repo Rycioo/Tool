@@ -1,6 +1,6 @@
- * ClashMi
- * author : William
- * ==================== 用戶配置區
+ # ClashMi
+ # author : William
+ # ==================== 用戶配置區
  
 allow-lan: true
 unified-delay: true
