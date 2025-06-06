@@ -1,8 +1,9 @@
-// 脚本分享地址：https://linux.do/t/topic/471428/143?u=oojialin
 /**
  * ClashVerge 代理规则配置生成脚本
  * MIT License ~
  * author : Phantasia https://github.com/MarchPhantasia
+ *
+ * Modified and fixed by Gemini
  */
 // ==================== 用户配置区（可自由修改） ====================
 /**
@@ -76,7 +77,7 @@ const REGIONS = [
         keywords: ["韩国", "🇰🇷", "kr", "Korea"],
         icon: "https://flagicons.lipis.dev/flags/4x3/kr.svg",
         enabled: true
-    },	
+    },
     {
         name: "SG",
         keywords: ["新加坡", "狮城", "🇸🇬", "sg", "singapore"],
@@ -88,7 +89,7 @@ const REGIONS = [
         keywords: ["美国", "US", "🇺🇸", "USA", "United States", "c7s1", "c7s2", "c7s3"],
         icon: "https://flagicons.lipis.dev/flags/4x3/us.svg",
         enabled: true
-    },	
+    },
     {
         name: "越南",
         keywords: ["越南", "VN", "Vietnam", "🇻🇳"],
@@ -596,7 +597,7 @@ const PROXY_RULES = [
         name: "Google",
         gfw: true,
         urls: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Google/Google_No_Resolve.yaml",
-        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google_Search.png"
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Google Search.png"
     },
     {
         name: "YouTube",
@@ -663,7 +664,7 @@ const PROXY_GROUP_ORDER = [
     "Outside",
     "Ads",
     "Linux.do",
-    "YouTube",	
+    "YouTube",
     "OpenAi",
     "Anthropic",
     "Microsoft",
@@ -677,6 +678,7 @@ const PROXY_GROUP_ORDER = [
     "Twitter",
     "Facebook",
     "China",
+];
 
 /**
  * DNS 配置
@@ -832,7 +834,7 @@ function createGfwProxyGroup(name, addProxies, testUrl, icon, regionGroupNames) 
         "name": name, // 代理组名称
         "type": "select", // 代理组类型为select，即手动选择
         // 确保包含所有地区分组的两个版本
-        "proxies": ["模式选择", ...addProxies, ...regionGroupNames, "所有节点-自动选优", "所有节点-负载均衡", "DIRECT"], // 代理服务器列表，包含模式选择、额外代理、地区分组、自动选优、负载均衡和直连
+        "proxies": ["Proxy", ...addProxies, ...regionGroupNames, "所有节点-自动选优", "所有节点-负载均衡", "DIRECT"], // 代理服务器列表，包含模式选择、额外代理、地区分组、自动选优、负载均衡和直连
         "include-all": true, // 包含所有代理服务器
         "url": testUrl,       // 测试URL，用于检测代理服务器连通性
         "icon": icon         // 代理组图标URL
@@ -863,28 +865,23 @@ function createProxyGroup(name, addProxies, testUrl, icon, regionGroupNames) {
 
 /**
  * 构建基本代理组
- * @param {Array} proxies - 所有代理节点
- * @param {string} testUrl - 测试URL
+ * @param {string[]} regionGroupNames - 动态生成的地区分组名称列表
+ * @param {Object[]} regionGroups - 动态生成的地区分组（url-test）
+ * @param {Object} allAutoGroup - “所有节点-自动选优”组
+ * @param {Object} allBalanceGroup - “所有节点-负载均衡”组
  * @returns {Array} 基本代理组配置
  */
-function buildBaseProxyGroups(proxies, testUrl) {
-    // 动态筛选启用且有实际代理节点的地区
-    const availableRegions = REGIONS.filter(region => 
-        region.enabled && 
-        proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
-    );
-    });
-
-    // 创建“模式选择”组，确保即使 regionGroupNames 为空，也有默认选项
+function buildBaseProxyGroups(regionGroupNames, regionGroups, allAutoGroup, allBalanceGroup) {
     const areaSelectGroup = {
         name: "Proxy",
         type: "select",
-        proxies: ["US", "JP", "download", "DIRECT", ...regionGroupNames],
+        proxies: ["所有节点-自动选优", "所有节点-负载均衡", "DIRECT", ...regionGroupNames],
         icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png"
     };
 
-    // 其他基本代理组
     const otherGroups = [
+        allAutoGroup,
+        allBalanceGroup,
         {
             "name": "China",
             "type": "select",
@@ -906,13 +903,12 @@ function buildBaseProxyGroups(proxies, testUrl) {
             "type": "select",
             "proxies": ["Proxy", "DIRECT"],
             "include-all": true,
-            "url": testUrl,
+            "url": CONFIG.testUrl,
             "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Lock.png"
         },
         ...regionGroups
     ];
 
-    // 将“模式选择”组放在最前面
     return [areaSelectGroup, ...otherGroups];
 }
 
@@ -924,6 +920,48 @@ function buildBaseProxyGroups(proxies, testUrl) {
 function main(config) {
     const { proxies } = config; // 从输入配置中获取代理服务器列表
     const testUrl = CONFIG.testUrl; // 获取全局测试URL
+
+    // --- 修正后的逻辑：集中处理地区分组 ---
+    // 1. 筛选出启用的且存在对应代理节点的地区
+    const availableRegions = REGIONS.filter(region =>
+        region.enabled &&
+        proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
+    );
+
+    // 2. 生成这些地区的 url-test 分组
+    const regionGroups = availableRegions.map(region => ({
+        "name": region.name,
+        "type": "url-test",
+        "url": testUrl,
+        "interval": CONFIG.testInterval,
+        "tolerance": CONFIG.tolerance,
+        "proxies": proxies
+            .filter(p => region.keywords.some(k => p.name.toLowerCase().includes(k.toLowerCase())))
+            .map(p => p.name),
+        "icon": region.icon,
+    }));
+    const regionGroupNames = availableRegions.map(r => r.name);
+
+    // 3. 创建“所有节点-自动选优”和“负载均衡”组
+    const allAutoGroup = {
+        name: "所有节点-自动选优",
+        type: "url-test",
+        url: testUrl,
+        interval: CONFIG.testInterval,
+        tolerance: CONFIG.tolerance,
+        "include-all": true,
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Auto.png"
+    };
+    const allBalanceGroup = {
+        name: "所有节点-负载均衡",
+        type: "load-balance",
+        strategy: CONFIG.balanceStrategy,
+        url: testUrl,
+        interval: CONFIG.testInterval,
+        "include-all": true,
+        icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Balance.png"
+    };
+    // --- 地区分组处理结束 ---
 
     // 初始化规则和代理组
     const rules = USER_RULES.slice(); // 复制用户自定义规则，防止修改原始数组
@@ -958,13 +996,8 @@ function main(config) {
         }
     };
 
-    // 获取所有启用的地区的代理组名称
-    const availableRegions = REGIONS.filter(region =>
-        region.enabled && 
-        proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
-    );
     // 生成 PROXY_RULES 的代理组
-    PROXY_RULES.forEach(({ name, gfw, urls, payload, extraProxies, icon }) => { // 遍历代理规则配置
+    PROXY_RULES.forEach(({ name, gfw, urls, payload, extraProxies, icon }) => {
         let group;
         if (name === "Ads") {
             group = {
@@ -975,27 +1008,29 @@ function main(config) {
                 "url": testUrl,
                 "icon": icon
             };
-        } else if (gfw) { // 如果是GFW规则
-            group = createGfwProxyGroup(name, extraProxies, testUrl, icon, regionGroupNames); // 创建GFW代理组
-        } else { // 如果是非GFW规则
-            group = createProxyGroup(name, extraProxies, testUrl, icon, regionGroupNames); // 创建普通代理组
+        } else if (gfw) {
+            // 修正：传入之前已正确生成的 regionGroupNames
+            group = createGfwProxyGroup(name, extraProxies, testUrl, icon, regionGroupNames);
+        } else {
+            // 修正：传入之前已正确生成的 regionGroupNames
+            group = createProxyGroup(name, extraProxies, testUrl, icon, regionGroupNames);
         }
         customProxyGroups.push(group);
 
         if (payload) {
-            rules.push(...createPayloadRules(payload, name)); // 添加到规则列表
-        } else if (urls) { // 如果有规则集URL
-            const urlList = Array.isArray(urls) ? urls : [urls]; // 确保urls是数组
+            rules.push(...createPayloadRules(payload, name));
+        } else if (urls) {
+            const urlList = Array.isArray(urls) ? urls : [urls];
             urlList.forEach((theUrl, j) => {
-                const iName = `${name}-rule${j !== 0 ? `-${j}` : ''}`; // 生成唯一的规则提供器名称
-                ruleProviders[iName] = createRuleProviderUrl(theUrl); // 创建规则提供器
-                rules.push(`RULE-SET,${iName},${name}`); // 添加规则集规则
+                const iName = `${name}-rule${j !== 0 ? `-${j}` : ''}`;
+                ruleProviders[iName] = createRuleProviderUrl(theUrl);
+                rules.push(`RULE-SET,${iName},${name}`);
             });
         }
     });
 
     // 构建基本代理组
-    const baseProxyGroups = buildBaseProxyGroups(proxies, testUrl);
+    const baseProxyGroups = buildBaseProxyGroups(regionGroupNames, regionGroups, allAutoGroup, allBalanceGroup);
 
     // 创建所有代理组的映射
     const allProxyGroupsMap = new Map();
@@ -1008,7 +1043,7 @@ function main(config) {
         const group = allProxyGroupsMap.get(name);
         if (group) {
             orderedProxyGroups.push(group);
-            allProxyGroupsMap.delete(name); // 删除已添加的组，避免重复
+            allProxyGroupsMap.delete(name);
         }
     });
 
@@ -1018,7 +1053,7 @@ function main(config) {
 
     // 构建最终配置
     return {
-        mode: "rule", // 模式为规则模式
+        mode: "rule",
         "find-process-mode": "strict",
         "global-client-fingerprint": "chrome",
         "unified-delay": true,
@@ -1027,10 +1062,10 @@ function main(config) {
             geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip-lite.dat",
             geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
         },
-        dns, // 使用之前构建的DNS配置
-        proxies, // 使用传入的代理服务器列表
+        dns,
+        proxies,
         "proxy-groups": finalProxyGroups,
-        "rule-providers": ruleProviders, // 使用之前构建的规则提供器
+        "rule-providers": ruleProviders,
         rules: [
             ...rules,
             ...SAVED_RULES
