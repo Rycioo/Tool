@@ -1,16 +1,7 @@
  * ClashMi
  * author : William
  * ==================== 用户配置区
-# url 里填寫自己的訂閱,名稱不能重復
-proxy-providers:
-  ProviderAirPort:
-    url: ""
-    type: http
-    interval: 86400
-    health-check: {enable: true,url: "http://www.apple.com/library/test/success.html",interval: 300}
-    # override:
-    #   additional-prefix: "[ProviderAirPort]"
-    
+
 proxies: 
   - name: "Direct"
     type: direct
