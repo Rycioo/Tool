@@ -253,7 +253,7 @@ proxy-groups:
     url: 'http://cp.cloudflare.com/generate_204'
  
   - name: YouTube
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Youtube.png
+    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/YouTube.png
     type: select
     proxies:
        - Proxy
