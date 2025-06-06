@@ -192,27 +192,27 @@ proxy-groups:
 
   - name: Proxy
     type: select
-    proxies: [HK,TW,JP,SG,US,NL,Download,All,direct]
+    proxies: [HK,TW,JP,SG,US,NL,Download,All,DIRECT]
 
   - name: Google
     type: select
-    proxies: [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies: [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
   - name: Telegram
     type: select
-    proxies: [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies: [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
   - name: Twitter
     type: select
-    proxies: [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies: [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
   - name: YouTube
     type: select
-    proxies: [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies: [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
   - name: Github
     type: select
-    proxies:  [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies:  [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
   - name: OpenAI
     type: select
@@ -220,15 +220,15 @@ proxy-groups:
 
   - name: Microsoft
     type: select
-    proxies:  [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies:  [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
   - name: CN
     type: select
-    proxies:  [direct,Proxy,HK,TW,JP,SG,US,All]
+    proxies:  [DIRECT,Proxy,HK,TW,JP,SG,US,All]
 
   - name: World
     type: select
-    proxies:  [Proxy,HK,TW,JP,SG,US,All,direct]
+    proxies:  [Proxy,HK,TW,JP,SG,US,All,DIRECT]
 
 
   #分隔,下面是地區分組
@@ -305,7 +305,7 @@ proxy-groups:
     include-all: true
 
 rules:
-  - RULE-SET,private_ip,direct,no-resolve
+  - RULE-SET,private_ip,DIRECT,no-resolve
   - RULE-SET,github_domain,Github
   - RULE-SET,twitter_domain,Twitter
   - RULE-SET,youtube_domain,YouTube
