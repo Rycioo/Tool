@@ -532,7 +532,7 @@ const REGIONS = [
         keywords: ["阿曼", "OM", "Oman", "🇴🇲"],
         icon: "https://flagicons.lipis.dev/flags/4x3/om.svg",
         enabled: false
-    }
+    },
     {
         name: "Download",
         keywords: ["c7s801"],
@@ -667,8 +667,8 @@ const PROXY_GROUP_ORDER = [
     "OpenAi",
     "Anthropic",
     "Microsoft",
-    "Google",		
-	  "Spotify",		   
+    "Google",
+    "Spotify",
     "Steam",
     "GitHub",
     "Cloudflare",
