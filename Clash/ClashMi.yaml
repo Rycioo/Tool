@@ -676,49 +676,7 @@ const PROXY_GROUP_ORDER = [
     "TikTok",
     "Twitter",
     "Facebook",
-    "Auto",
-    "Feedback",	
     "China",
-    // 以下为启用的地区分组（自动选优和负载均衡）
-    "香港-自动选优",
-    "香港-负载均衡",
-    "台湾-自动选优",
-    "台湾-负载均衡",
-    "日本-自动选优",
-    "日本-负载均衡",
-    "韩国-自动选优",
-    "韩国-负载均衡",
-    "美国-自动选优",
-    "美国-负载均衡",	
-    "越南-自动选优",
-    "越南-负载均衡",
-    "泰国-自动选优",
-    "泰国-负载均衡",
-    "菲律宾-自动选优",
-    "菲律宾-负载均衡",
-    "马来西亚-自动选优",
-    "马来西亚-负载均衡",
-    "新加坡-自动选优",
-    "新加坡-负载均衡",
-    "柬埔寨-自动选优",
-    "柬埔寨-负载均衡",
-    "印度尼西亚-自动选优",
-    "印度尼西亚-负载均衡",
-    "缅甸-自动选优",
-    "缅甸-负载均衡",
-    "老挝-自动选优",
-    "老挝-负载均衡",
-    "印度-自动选优",
-    "印度-负载均衡",
-    "孟加拉-自动选优",
-    "孟加拉-负载均衡",
-    "巴基斯坦-自动选优",
-    "巴基斯坦-负载均衡",
-    "俄罗斯-自动选优",
-    "俄罗斯-负载均衡",
-    "尼日利亚-自动选优",
-    "尼日利亚-负载均衡"
-];
 
 /**
  * DNS 配置
@@ -896,7 +854,7 @@ function createProxyGroup(name, addProxies, testUrl, icon, regionGroupNames) {
         "name": name,
         "type": "select",
         // 确保包含所有地区分组的两个版本
-        "proxies": ["模式选择", ...addProxies, ...regionGroupNames, "DIRECT", "所有节点-自动选优", "所有节点-负载均衡"],
+        "proxies": ["Proxy", ...addProxies, ...regionGroupNames, "DIRECT"],
         "include-all": true,
         "url": testUrl,
         "icon": icon
@@ -915,51 +873,13 @@ function buildBaseProxyGroups(proxies, testUrl) {
         region.enabled && 
         proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
     );
-
-    // 创建地区分组的自动选优和负载均衡版本
-    const regionGroupsAutoSelect = availableRegions.map(region => {
-        const regionProxies = proxies.filter(proxy =>
-            region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase()))
-        ).map(proxy => proxy.name);
-        return {
-            name: `${region.name}-自动选优`, // 地区名称加上自动选优后缀
-            type: "url-test", // 使用url-test模式
-            proxies: regionProxies, // 包含该地区的代理服务器
-            url: testUrl,         // 测试URL
-            interval: CONFIG.testInterval, // 测试间隔
-            icon: region.icon       // 地区图标
-        };
     });
-
-    const regionGroupsLoadBalance = availableRegions.map(region => {
-        const regionProxies = proxies.filter(proxy =>
-            region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase()))
-        ).map(proxy => proxy.name);
-        return {
-            name: `${region.name}-负载均衡`, // 地区名称加上负载均衡后缀
-            type: "load-balance", // 使用load-balance模式
-            proxies: regionProxies, // 包含该地区的代理服务器
-            url: testUrl,         // 测试URL
-            interval: CONFIG.testInterval, // 测试间隔
-            strategy: CONFIG.balanceStrategy, // 使用配置的负载均衡策略
-            icon: region.icon       // 地区图标
-        };
-    });
-
-    // 合并两个版本的地区分组
-    const regionGroups = [...regionGroupsAutoSelect, ...regionGroupsLoadBalance];
-
-    // 按地区顺序生成地区分组名称，每对为“自动选优”和“负载均衡”
-    const regionGroupNames = availableRegions.map(region => [
-        `${region.name}-自动选优`,
-        `${region.name}-负载均衡`
-    ]).flat();
 
     // 创建“模式选择”组，确保即使 regionGroupNames 为空，也有默认选项
     const areaSelectGroup = {
         name: "Proxy",
         type: "select",
-        proxies: ["Auto", "Feedback", "DIRECT", ...regionGroupNames],
+        proxies: ["US", "JP", "download", "DIRECT", ...regionGroupNames],
         icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Global.png"
     };
 
@@ -988,25 +908,6 @@ function buildBaseProxyGroups(proxies, testUrl) {
             "include-all": true,
             "url": testUrl,
             "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Lock.png"
-        },
-        // 自动选优和负载均衡
-        {
-            "name": "Auto",
-            "type": "url-test",
-            "tolerance": CONFIG.tolerance,
-            "include-all": true,
-            "url": testUrl,
-            "interval": CONFIG.testInterval,
-            "icon": "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Proxy.png"
-        },
-        {
-            "name": "Feedback",
-            "type": "load-balance",
-            "include-all": true,
-            "strategy": CONFIG.balanceStrategy,
-            "url": testUrl,
-            "interval": CONFIG.testInterval,
-            "icon": "https://www.clashverge.dev/assets/icons/balance.svg"
         },
         ...regionGroups
     ];
@@ -1062,11 +963,6 @@ function main(config) {
         region.enabled && 
         proxies.some(proxy => region.keywords.some(keyword => proxy.name.toLowerCase().includes(keyword.toLowerCase())))
     );
-    const regionGroupNames = availableRegions.map(region => [
-        `${region.name}-自动选优`,
-        `${region.name}-负载均衡`
-    ]).flat();
-
     // 生成 PROXY_RULES 的代理组
     PROXY_RULES.forEach(({ name, gfw, urls, payload, extraProxies, icon }) => { // 遍历代理规则配置
         let group;
