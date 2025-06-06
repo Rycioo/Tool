@@ -304,83 +304,144 @@ proxy-groups:
     type: select
     include-all: true
 
-rules:
-  - RULE-SET,private_ip,DIRECT,no-resolve
-  - RULE-SET,github_domain,Github
-  - RULE-SET,twitter_domain,Twitter
-  - RULE-SET,youtube_domain,YouTube
-  - RULE-SET,google_domain,Google
-  - RULE-SET,telegram_domain,Telegram
-  - RULE-SET,cn_domain,CN
-  - RULE-SET,openai_domain,OpenAI
-  - RULE-SET,microsoft_domain,Microsoft
-  - RULE-SET,geolocation-!cn,World
-  - RULE-SET,gfw_domain,World  
-
-  - RULE-SET,google_ip,Google
-  - RULE-SET,telegram_ip,Telegram
-  - RULE-SET,twitter_ip,Twitter
-  - RULE-SET,cn_ip,CN
-  - MATCH,World
-
-  - GEOIP,google,Google
-  - GEOIP,telegram,Telegram
-  - GEOIP,twitter,Twitter
-  - GEOIP,CN,CN
-
-rule-anchor:
-  ip: &ip {type: http, interval: 86400, behavior: ipcidr, format: text}
-  domain: &domain {type: http, interval: 86400, behavior: domain, format: text}
 rule-providers:
-  private_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/private.list"
-  cn_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.list"
-  github_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.list"
-  twitter_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/twitter.list"
-  youtube_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/youtube.list"
-  google_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.list"
-  telegram_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.list"
-  openai_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/openai.list"    
-  microsoft_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.list"      
-  geolocation-!cn:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/geolocation-!cn.list"
-  gfw_domain:
-    <<: *domain
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/gfw.list"         
+  LocalAreaNetwork:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/LocalAreaNetwork.list
+    path: ./ruleset/LocalAreaNetwork.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  UnBan:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/UnBan.list
+    path: ./ruleset/UnBan.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  BanAD:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/BanAD.list
+    path: ./ruleset/BanAD.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  BanProgramAD:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/BanProgramAD.list
+    path: ./ruleset/BanProgramAD.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  SteamCN:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/SteamCN.list
+    path: ./ruleset/SteamCN.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  Bing:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Bing.list
+    path: ./ruleset/Bing.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  OneDrive:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/OneDrive.list
+    path: ./ruleset/OneDrive.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  Microsoft:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Microsoft.list
+    path: ./ruleset/Microsoft.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  Telegram:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Telegram.list
+    path: ./ruleset/Telegram.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  Epic:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/Epic.list
+    path: ./ruleset/Epic.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  Steam:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/Steam.list
+    path: ./ruleset/Steam.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  BilibiliHMT:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/BilibiliHMT.list
+    path: ./ruleset/BilibiliHMT.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  Bilibili:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/Bilibili.list
+    path: ./ruleset/Bilibili.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  ChinaMedia:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/ChinaMedia.list
+    path: ./ruleset/ChinaMedia.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  ProxyGFWlist:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/ProxyGFWlist.list
+    path: ./ruleset/ProxyGFWlist.list
+    behavior: classical
+    interval: 86400
+    format: text
+    type: http
+  ChinaDomain:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/ChinaDomain.list
+    path: ./ruleset/ChinaDomain.list
+    behavior: domain
+    interval: 86400
+    format: text
+    type: http
+  ChinaCompanyIp:
+    url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/ChinaCompanyIp.list
+    path: ./ruleset/ChinaCompanyIp.list
+    behavior: ipcidr
+    interval: 86400
+    format: text
+    type: http
 
-  private_ip:
-    <<: *ip
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/private.list"
-  cn_ip:
-    <<: *ip
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.list"
-  google_ip:
-    <<: *ip
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.list"
-  netflix_ip:
-    <<: *ip
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/netflix.list"
-  twitter_ip:
-    <<: *ip
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/twitter.list"
-  telegram_ip:
-    <<: *ip
-    url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.list"
+rules:
+  - "RULE-SET,LocalAreaNetwork,CN"
+  - "RULE-SET,UnBan,CN"
+  - "RULE-SET,BanAD,Ads"
+  - "RULE-SET,BanProgramAD,Ads"
+  - "RULE-SET,SteamCN,CN"
+  - "RULE-SET,Bing,Microsoft"
+  - "RULE-SET,OneDrive,Microsoft"
+  - "RULE-SET,Microsoft,Microsoft"
+  - "RULE-SET,Telegram,Telegram"
+  - "RULE-SET,Epic,Game"
+  - "RULE-SET,Steam,Game"
+  - "RULE-SET,BilibiliHMT,Bilibili"
+  - "RULE-SET,Bilibili,Bilibili"
+  - "RULE-SET,ChinaMedia,CN"
+  - "RULE-SET,ProxyGFWlist,Proxy"
+  - "RULE-SET,ChinaDomain,CN"
+  - "RULE-SET,ChinaCompanyIp,CN"
+  - "GEOIP,CN,CN"
+  - "MATCH,World"
