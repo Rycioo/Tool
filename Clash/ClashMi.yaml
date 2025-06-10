@@ -42,20 +42,13 @@ tun:
 dns:
   enable: true
   ipv6: false
+  respect-rules: true
   default-nameserver:
      - 223.5.5.5
      - 223.6.6.6
   nameserver:
-     - 1.1.1.1
-     - 8.8.8.8
-  fallback:
-     - tls://1.1.1.1:853
-     - tls://8.8.8.8:853
-  fallback-filter:
-    geoip: true
-    geoip-code: CN
-    ipcidr:
-       - 240.0.0.0/4
+     - 223,5,5,5
+     - 223.6.6.6
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
   fake-ip-filter:
@@ -182,11 +175,6 @@ dns:
       - '+.gcloudcs.com'
       - '+.gcloudsdk.com'
       
-geodata-mode: true
-geox-url:
-    geoip: "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat"
-    geosite: "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
-
 proxy-groups:
 
   - name: Proxy
@@ -209,18 +197,10 @@ proxy-groups:
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
-       - All
        - DIRECT
     url: 'http://www.google.com/generate_204'
  
-  - name: Telegram
+  - name: TG
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Telegram.png
     type: select
     proxies:
@@ -232,22 +212,14 @@ proxy-groups:
        - HK
        - SG
        - TW
-       - All
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
 
-  - name: Twitter
+  - name: X
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Twitter.png
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
        - All
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
@@ -257,29 +229,15 @@ proxy-groups:
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
        - All
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
   
   - name: Github
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/G-Core_Labs.png
+    icon: https://raw.githubusercontent.com/Orz-3/mini/master/Alpha/github.png
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
        - All
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
@@ -289,13 +247,6 @@ proxy-groups:
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
        - All
     url: 'http://cp.cloudflare.com/generate_204'
   
@@ -304,13 +255,6 @@ proxy-groups:
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
        - All
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
@@ -327,23 +271,9 @@ proxy-groups:
     type: select
     proxies:
        - Proxy
-       - US
-       - JP
-       - NL
-       - Download
-       - HK
-       - SG
-       - TW
        - All
        - DIRECT
     url: 'http://cp.cloudflare.com/generate_204'
-  
-  - name: CN
-    icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/China.png
-    type: select
-    proxies:
-       - DIRECT
-    url: 'http://connectivitycheck.platform.hicloud.com/generate_204'
 
   - name: World
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/United_Nations.png
@@ -384,7 +314,7 @@ proxy-groups:
     strategy: consistent-hashing
     #hidden: true
 
-  - name: SG
+  #- name: SG
     type: select
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png
     include-all: true
@@ -504,7 +434,7 @@ rule-providers:
     format: text
     type: http
     
-  Microsoft:
+  MicrosoftRule:
     url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Microsoft.list
     path: ./ruleset/Microsoft.list
     behavior: classical
@@ -535,7 +465,31 @@ rule-providers:
     interval: 86400
     format: text
     type: http
+
+  YoutubeRule:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/YouTube/YouTube.yaml
+    path: ./ruleset/Youtube.yaml
+    behavior: classical
+    interval: 86400
+    format: yaml
+    type: http
+  
+  GoogleRule:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Google/Google.yaml
+    path: ./ruleset/Google.yaml
+    behavior: classical
+    interval: 86400
+    format: yaml
+    type: http
     
+  Twitter:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/Twitter/Twitter.yaml
+    path: ./ruleset/Twitter.yaml
+    behavior: classical
+    interval: 86400
+    format: yaml
+    type: http
+  
   BilibiliHMT:
     url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/BilibiliHMT.list
     path: ./ruleset/BilibiliHMT.list
@@ -544,7 +498,7 @@ rule-providers:
     format: text
     type: http
     
-  Bilibili:
+  BilibiliRule:
     url: https://testingcf.jsdelivr.net/gh/ACL4SSR/ACL4SSR@master/Clash/Ruleset/Bilibili.list
     path: ./ruleset/Bilibili.list
     behavior: classical
@@ -566,6 +520,14 @@ rule-providers:
     behavior: classical
     interval: 86400
     format: text
+    type: http
+
+    Wechat:
+    url: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Clash/WeChat/WeChat.yaml
+    path: ./ruleset/WeChat.yaml
+    behavior: classical
+    interval: 86400
+    format: yaml
     type: http
     
   ChinaDomain:
@@ -593,23 +555,26 @@ rule-providers:
     type: http
 
 rules:
-  - "RULE-SET,LocalAreaNetwork,CN"
-  - "RULE-SET,UnBan,CN"
+  - "RULE-SET,LocalAreaNetwork,DIRECT"
+  - "RULE-SET,UnBan,DIRECT"
   - "RULE-SET,BanAD,Ads"
   - "RULE-SET,BanProgramAD,Ads"
-  - "RULE-SET,SteamCN,CN"
+  - "RULE-SET,SteamCN,DIRECT"
   - "RULE-SET,Bing,Microsoft"
   - "RULE-SET,OneDrive,Microsoft"
-  - "RULE-SET,Microsoft,Microsoft"
-  - "RULE-SET,Telegram,Telegram"
+  - "RULE-SET,MicrosoftRule,Microsoft"
+  - "RULE-SET,Telegram,TG,no-resolve"
   - "RULE-SET,Epic,Game"
   - "RULE-SET,Steam,Game"
+  - "RULE-SET,Twitter,X"
+  - "RULE-SET,YoutubeRule,Youtube"
+  - "RULE-SET,GoogleRule,Google,no-resolve"
   - "RULE-SET,BilibiliHMT,Bilibili"
-  - "RULE-SET,Bilibili,Bilibili"
-  - "RULE-SET,ChinaMedia,CN"
+  - "RULE-SET,BilibiliRule,Bilibili"
+  - "RULE-SET,Wechat,DIRECT"
+  - "RULE-SET,ChinaMedia,DIRECT"
   - "RULE-SET,ProxyGFWlist,Proxy"
-  - "RULE-SET,ChinaDomain,CN"
-  - "RULE-SET,ChinaCompanyIp,CN"
-  - "RULE-SET,collection,DIRECT,no-resolve"
-  - "GEOIP,CN,CN,no-resolve"
+  - "RULE-SET,ChinaDomain,DIRECT"
+  - "RULE-SET,ChinaCompanyIp,DIRECT"
+  - "RULE-SET,collection,DIRECT"
   - "MATCH,World"
