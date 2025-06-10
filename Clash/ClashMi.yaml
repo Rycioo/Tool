@@ -314,7 +314,7 @@ proxy-groups:
     strategy: consistent-hashing
     #hidden: true
 
-  #- name: SG
+  - name: SG
     type: select
     icon: https://testingcf.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Singapore.png
     include-all: true
