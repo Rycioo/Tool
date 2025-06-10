@@ -567,7 +567,7 @@ rules:
   - "RULE-SET,Epic,Game"
   - "RULE-SET,Steam,Game"
   - "RULE-SET,Twitter,X"
-  - "RULE-SET,YoutubeRule,Youtube"
+  - "RULE-SET,YoutubeRule,YouTube"
   - "RULE-SET,GoogleRule,Google,no-resolve"
   - "RULE-SET,BilibiliHMT,Bilibili"
   - "RULE-SET,BilibiliRule,Bilibili"
