@@ -1,6 +1,8 @@
 #!name=Telegram IPs
-#!desc=將 tg 的垃圾 IP 轉移到好的 IP 上
+#!author=William
+#!desc=將 tg 的壞 IP 轉移到好的 IP 上
 #!category=⚙️ ▸ Function
+#!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Telegram.png
 
 [General]
 use-local-host-item-for-proxy = true
