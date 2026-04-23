@@ -66,4 +66,3 @@ IP-CIDR6, 2607:6bc0::/48, no-resolve
 # Grok
 DOMAIN-SUFFIX,x.ai
 DOMAIN-SUFFIX,grok.com
-DOMAIN-SUFFIX,ai.com
