@@ -5,7 +5,7 @@
 #!openUrl=https://apps.apple.com/app/id414478124
 #感謝以上作者的貢獻！
 
-[Host]
+#[Host]
 # > 騰訊
 # refer: https://www.dnspod.cn/products/publicdns
 *.tencent.com = server:https://doh.pub/dns-query
